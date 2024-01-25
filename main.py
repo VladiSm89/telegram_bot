@@ -1,31 +1,78 @@
-import requests
-import time
+from aiogram import Bot, Dispatcher
+from aiogram.filters import Command
+from aiogram.types import Message
+import sqlite3
+from fuzzywuzzy import fuzz
+
+def search_home(search_input):
+    db = sqlite3.connect('data_home.db')
+    c = db.cursor()
+
+    c.execute("SELECT * FROM data_home")
+    all_rows = c.fetchall()
+
+    max_similarity = 0
+    best_match = None
+
+    search_input = search_input.split()
+    search_street = search_input[0].capitalize()
+    search_home_number = search_input[1]
+
+    for row in all_rows:
+        db_street = row[1].lower()  # Assuming street is in the second column, adjust if needed
+        db_home_number = row[2]  # Assuming home number is in the third column, adjust if needed
+
+        street_similarity = fuzz.partial_ratio(search_street.lower(), db_street)
+        home_number_similarity = fuzz.partial_ratio(search_home_number, str(db_home_number))
+
+        total_similarity = (street_similarity + home_number_similarity) / 2
+
+        if total_similarity > max_similarity:
+            max_similarity = total_similarity
+            best_match = row
+
+    if best_match:
+        result_string = f"Наиболее подходящий результат: {', '.join(map(str, best_match))}"
+        return result_string
+    else:
+        result_string = "По запрошенному адресу нет совпадений"
+        return result_string
 
 
-API_URL = 'https://api.telegram.org/bot'
-API_CATS_URL = 'https://api.thecatapi.com/v1/images/search'
+
+
+    db.close()
+
+# Вместо BOT TOKEN HERE нужно вставить токен вашего бота, полученный у @BotFather
 BOT_TOKEN = '6785402131:AAFzB64VaYufSYp9jQ879vHkWArL2KJhs-A'
-ERROR_TEXT = 'Здесь должна была быть картинка с котиком :('
 
-offset = -2
-counter = 0
-cat_response: requests.Response
-cat_link: str
+# Создаем объекты бота и диспетчера
+bot = Bot(token=BOT_TOKEN)
+dp = Dispatcher()
 
-while counter < 100:
-    print('attempt =', counter)
-    updates = requests.get(f'{API_URL}{BOT_TOKEN}/getUpdates?offset={offset + 1}').json()
 
-    if updates['result']:
-        for result in updates['result']:
-            offset = result['update_id']
-            chat_id = result['message']['from']['id']
-            cat_response = requests.get(API_CATS_URL)
-            if cat_response.status_code == 200:
-                cat_link = cat_response.json()[0]['url']
-                requests.get(f'{API_URL}{BOT_TOKEN}/sendPhoto?chat_id={chat_id}&photo={cat_link}')
-            else:
-                requests.get(f'{API_URL}{BOT_TOKEN}/sendMessage?chat_id={chat_id}&text={ERROR_TEXT}')
+# Этот хэндлер будет срабатывать на команду "/start"
+@dp.message(Command(commands=["start"]))
+async def process_start_command(message: Message):
+    await message.answer('Привет!\nМеня зовут Эхо-бот!\nНапиши мне что-нибудь')
 
-    time.sleep(1)
-    counter += 1
+
+# Этот хэндлер будет срабатывать на команду "/help"
+@dp.message(Command(commands=['help']))
+async def process_help_command(message: Message):
+    await message.answer(
+        'Напиши мне что-нибудь и в ответ '
+        'я пришлю тебе твое сообщение'
+    )
+
+
+# Этот хэндлер будет срабатывать на любые ваши текстовые сообщения,
+# кроме команд "/start" и "/help"
+@dp.message()
+async def send_echo(message: Message):
+    result = search_home(message.text)
+    await message.reply(result)
+
+
+if __name__ == '__main__':
+    dp.run_polling(bot)
