@@ -2,44 +2,30 @@ from aiogram import Bot, Dispatcher
 from aiogram.filters import Command
 from aiogram.types import Message
 import sqlite3
-from fuzzywuzzy import fuzz
 
-def search_home(search_input):
+
+def search_home(adres):
+
     db = sqlite3.connect('data_home.db')
+    #Create cursor.
     c = db.cursor()
 
-    c.execute("SELECT * FROM data_home")
-    all_rows = c.fetchall()
 
-    max_similarity = 0
-    best_match = None
+    adres = adres.split()
+    street = adres[0][0].upper() + adres[0][1::]
+    home_number = adres[1]
+    adr = ('%' + street + '%' + home_number + '%',)
+    sql = "SELECT * FROM data_home WHERE LOWER(Тип) LIKE ?"
 
-    search_input = search_input.split()
-    search_street = search_input[0].capitalize()
-    search_home_number = search_input[1]
+    c.execute(sql, adr)
+    result = c.fetchall()
+    if  result:
+        result =f'''Адрес объекта: {result[0][1]} \nПринадлежность: {result[0][2]} \nКоличество квартир: {int(result[0][3])} \nЭтажность: {int(result[0][4])} \nРазмеры в плане, м.: {result[0][5]} \nВысота от уровня земли до конька, м.: {int(result[0][6])} \nСтепень огнестойкости: {int(result[0][7])} \nГод постройки: {int(result[0][8])} \nКоличество жильцов: {result[0][9]} \nОтопление (вид топлива, если печное): {result[0][10]} \nНаличие АПС: {result[0][11]} \nНаличие крана пожаротушения: {result[0][12]} \n'''
+        return result
 
-    for row in all_rows:
-        db_street = row[1].lower()  # Assuming street is in the second column, adjust if needed
-        db_home_number = row[2]  # Assuming home number is in the third column, adjust if needed
-
-        street_similarity = fuzz.partial_ratio(search_street.lower(), db_street)
-        home_number_similarity = fuzz.partial_ratio(search_home_number, str(db_home_number))
-
-        total_similarity = (street_similarity + home_number_similarity) / 2
-
-        if total_similarity > max_similarity:
-            max_similarity = total_similarity
-            best_match = row
-
-    if best_match:
-        result_string = f"Наиболее подходящий результат: {', '.join(map(str, best_match))}"
-        return result_string
     else:
-        result_string = "По запрошенному адресу нет совпадений"
-        return result_string
-
-
-
+        result="По запрошенному адресу нет совпадений"
+        return result
 
     db.close()
 
@@ -54,15 +40,15 @@ dp = Dispatcher()
 # Этот хэндлер будет срабатывать на команду "/start"
 @dp.message(Command(commands=["start"]))
 async def process_start_command(message: Message):
-    await message.answer('Привет!\nМеня зовут Эхо-бот!\nНапиши мне что-нибудь')
+    await message.answer('')
 
 
 # Этот хэндлер будет срабатывать на команду "/help"
 @dp.message(Command(commands=['help']))
 async def process_help_command(message: Message):
     await message.answer(
-        'Напиши мне что-нибудь и в ответ '
-        'я пришлю тебе твое сообщение'
+        ''
+        ''
     )
 
 
