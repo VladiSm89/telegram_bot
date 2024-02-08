@@ -1,50 +1,10 @@
 from aiogram import Bot, Dispatcher
 from aiogram.filters import Command
 from aiogram.types import Message
-import sqlite3
 
+from def_search import search_home
+from config import BOT_TOKEN
 
-def search_home(adres):
-    db = sqlite3.connect('data_home.db')
-    # Create cursor.
-    c = db.cursor()
-
-    adres = adres.split()
-    street = adres[0][0].upper() + adres[0][1::]
-    home_number = adres[1]
-    adr = ('%' + street + '%' + home_number + '%',)
-    sql = "SELECT * FROM data_home WHERE LOWER(Тип) LIKE ?"
-
-    c.execute(sql, adr)
-    result = c.fetchall()
-    result = result[0]
-
-    # меняем типы данных с float на int, убираем None из списка
-    result = ["нет данных" if el is None else el for el in result]
-    result = [int(el) if isinstance(el, float) else el for el in result]
-
-    if result:
-        result = f'''Адрес объекта: {result[1]}
-Принадлежность: {result[2]}
-Количество квартир: {result[3]}
-Этажность: {result[4]}
-Размеры в плане, м.: {result[5]}
-Высота от уровня земли до конька, м.: {result[6]}
-Степень огнестойкости: {result[7]}
-Год постройки: {result[8]}
-Количество жильцов: {result[9]}
-Отопление (вид топлива, если печное): {result[10]}
-Наличие АПС: {result[11]}
-Наличие крана пожаротушения: {result[12]}'''
-
-        return result
-
-    else:
-        result = "По запрошенному адресу нет совпадений"
-        return result
-
-# Вместо BOT TOKEN HERE нужно вставить токен вашего бота, полученный у @BotFather
-BOT_TOKEN = '6785402131:AAFzB64VaYufSYp9jQ879vHkWArL2KJhs-A'
 
 # Создаем объекты бота и диспетчера
 bot = Bot(token=BOT_TOKEN)
