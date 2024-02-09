@@ -8,7 +8,7 @@ def search_home(adres):
             c = db.cursor()
             adres = adres.split()
             street = adres[0].capitalize()
-            home_number = adres[1].upper()
+            home_number = ''.join(adres[1::]).upper().strip()
             adr = ('%' + street + '%' + home_number + '%',)
             sql = "SELECT * FROM data WHERE LOWER(Адрес_дома) LIKE ?"
             c.execute(sql, adr)
@@ -28,21 +28,20 @@ def search_home(adres):
                     result[19], result[20], result[21] = result[25], result[26], result[27]
 
             result = f'''Адрес: {result[0]}
-Категория окружных стандартов: {result[1]}
 Примечание: {result[2]}
 Принадлежность объекта: {result[3]}
 Год постройки: {result[4]}
 Степень огнестойкости: {result[5]}
 Размеры здания, м.: {result[6]}
 Этажность: {result[7]}
-Количество подъездов: {result[8]}
+Количество подъездов(код домофона): {result[8]}
 Количество квартир: {result[19]}
 Проинструктированно человек: {result[20]}
 Памятка в п/я: {result[21]}
 Пристрой: {result[9]}
 Тип отопления: {result[10]}
-Вход на чердак внутри здания (лестница): {result[11]}
-Вход на чердак снаружи здания (лестница): {result[12]}
+Вход на чердак снаружи здания (лестница): {result[11]}
+Вход на чердак внутри здания (лестница): {result[12]}
 Доступ под свайное поле: {result[13]}
 Информационный стенд: {result[14]}
 Сухотруб: {result[15]}
