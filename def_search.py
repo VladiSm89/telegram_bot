@@ -6,11 +6,15 @@ def search_home(adres):
 
             # Create cursor.
             c = db.cursor()
+            # Преобразуем вводимые данные к форматированию в бд.
             adres = adres.split()
             street = adres[0].capitalize()
             home_number = ''.join(adres[1::]).upper().strip()
+
+            # Создаём SQL запрос
             adr = ('%' + street + '%' + home_number + '%',)
-            sql = "SELECT * FROM data WHERE LOWER(Адрес_дома) LIKE ?"
+            sql = "SELECT * FROM data WHERE Адрес_дома LIKE ?"
+
             c.execute(sql, adr)
             result = c.fetchone()
 
@@ -21,7 +25,7 @@ def search_home(adres):
             result = ["нет данных" if el is None else el for el in result]
             result = [int(el) if isinstance(el, float) else el for el in result]
 
-            # ВЫбираем более актуальные данные по профилактическим операциям
+            # Выбираем более актуальные данные по профилактическим операциям
             if result[19] == 'нет данных':
                 result[19], result[20], result[21] = result[22], result[23], result[24]
                 if result[22] == 'нет данных':
