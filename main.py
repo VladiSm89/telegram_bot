@@ -2,7 +2,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.filters import Command
 from aiogram.types import Message
 
-from def_search import search_home
+from def_search import txt_information
 from config import BOT_TOKEN
 
 
@@ -33,8 +33,7 @@ async def process_help_command(message: Message):
 # кроме команд "/start" и "/help"
 @dp.message()
 async def send_echo(message: Message):
-    result = search_home(message.text)
-    await message.reply(result)
+    await message.reply(txt_information(message.text))
 
 
 if __name__ == '__main__':
