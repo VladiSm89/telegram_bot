@@ -8,7 +8,7 @@ def get_information_from_db(adres):
 
         adres = adres.split()
         street = adres[0].capitalize()
-        home_number = 'д.' + adres[1].upper()
+        home_number = 'д.' + adres[1::].upper()
         adr = ('%' + street + '%' + home_number + '%',)
         sql = "SELECT * FROM data WHERE LOWER(Адрес_дома) LIKE ?"
         c.execute(sql, adr)
