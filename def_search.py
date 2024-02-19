@@ -1,61 +1,69 @@
 import sqlite3
 
-def search_home(adres):
-    try:
-        with sqlite3.connect('data.db') as db:
+#Функция получает информацию из базы данных
+def get_information_from_db(adres):
+    with sqlite3.connect('data.db') as connection:
+        # Create cursor.
+        c = connection.cursor()
 
-            # Create cursor.
-            c = db.cursor()
-            # Преобразуем вводимые данные к форматированию в бд.
-            adres = adres.split()
-            street = adres[0].capitalize()
-            home_number = ''.join(adres[1::]).upper().strip()
+        adres = adres.split()
+        street = adres[0].capitalize()
+        home_number = 'д.' + (''.join(adres[1::]).upper().strip())
+        adr = ('%' + street + '%' + home_number,)
+        sql = "SELECT * FROM data WHERE LOWER(Адрес_дома) LIKE ?"
+        c.execute(sql, adr)
+        result = c.fetchall()
 
-            # Создаём SQL запрос
-            adr = ('%' + street + '%' + home_number + '%',)
-            sql = "SELECT * FROM data WHERE Адрес_дома LIKE ?"
+        if result is None:
+            return "Информация о данном адресе не найдена."
 
-            c.execute(sql, adr)
-            result = c.fetchone()
+        return result
 
-            if result is None:
-                return "Запрошенный адрес не найден."
 
-            # Convert None to "нет данных" and float to int
-            result = ["нет данных" if el is None else el for el in result]
-            result = [int(el) if isinstance(el, float) else el for el in result]
+def processing_of_data_for_printing(results):
+    if not results:
+        return "Данные не найдены"
 
-            # Выбираем более актуальные данные по профилактическим операциям
-            if result[19] == 'нет данных':
-                result[19], result[20], result[21] = result[22], result[23], result[24]
-                if result[22] == 'нет данных':
-                    result[19], result[20], result[21] = result[25], result[26], result[27]
+    processed_results = []
 
-            result = f'''Адрес: {result[0]}
-Примечание: {result[2]}
-Принадлежность объекта: {result[3]}
-Год постройки: {result[4]}
-Степень огнестойкости: {result[5]}
-Размеры здания, м.: {result[6]}
-Этажность: {result[7]}
-Количество подъездов(код домофона): {result[8]}
-Количество квартир: {result[19]}
-Проинструктированно человек: {result[20]}
-Памятка в п/я: {result[21]}
-Пристрой: {result[9]}
-Тип отопления: {result[10]}
-Вход на чердак снаружи здания (лестница): {result[11]}
-Вход на чердак внутри здания (лестница): {result[12]}
-Доступ под свайное поле: {result[13]}
-Информационный стенд: {result[14]}
-Сухотруб: {result[15]}
-Ближайший ПВ №: {result[16]}
-Конструктивные элементы: {result[17]}
-Координаты: {result[18]}'''
-            return result
-    except sqlite3.Error as e:
-        print(f"SQLite error: {e}")
-        return "Ощибка подключения к базе данных."
-    connect.close()
-    return result
+    for result in results:
+        # Convert None to "нет данных" and float to int
+        result = ["нет данных" if el is None else el for el in result]
+        result = [int(el) if isinstance(el, float) else el for el in result]
+
+        # Выбираем более актуальные данные по профилактическим операциям
+        if result[19] == 'нет данных':
+            result[19], result[20], result[21] = result[22], result[23], result[24]
+            if result[22] == 'нет данных':
+                result[19], result[20], result[21] = result[25], result[26], result[27]
+
+        keys = ('Адрес', 'Примечание', 'Принадлежность объекта', 'Год постройки', 'Степень огнестойкости', 'Размеры здания',
+                'Этажность', 'Количество подъездов(код домофона)', 'Количество квартир', 'Проинструктировано человек',
+                'Памятка в п/я', 'Пристрой', 'Тип отопления', 'Вход на чердак снаружи здания (лестница)',
+                'Вход на чердак внутри здания (лестница)', 'Доступ под свайное поле', 'Информационный стенд', 'Сухотруб',
+                'Ближайший ПВ №', 'Конструктивные элементы', 'Координаты')
+
+        values = (result[0], result[2], result[3], result[4], result[5], result[6], result[7], result[8], result[19], result[20],
+                  result[21], result[9], result[10], result[11], result[12], result[13], result[14], result[15], result[16],
+                  result[17], result[18])
+
+        info_address = dict(zip(keys, values))
+
+        non_output_list = tuple()  # дабвляем ключи елементов словаря info_adres которых не должно быть в выводе
+
+        processed_result = '\n'.join([f'{key}: {value}' for key, value in info_address.items() if key not in non_output_list
+                                      and value != 'нет данных'])
+        processed_results.append(processed_result)
+
+    return "\n\n".join(processed_results)
+
+
+def txt_information(adres_home):
+    result = get_information_from_db(adres_home)
+    return processing_of_data_for_printing(result)
+
+
+
+
+
 
