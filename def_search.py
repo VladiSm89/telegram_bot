@@ -32,11 +32,13 @@ def processing_of_data_for_printing(results):
         result = [int(el) if isinstance(el, float) else el for el in result]
 
         # Выбираем более актуальные данные по профилактическим операциям
-        if result[19] == 'нет данных':
-            result[19], result[20], result[21] = result[22], result[23], result[24]
-            if result[22] == 'нет данных':
-                result[19], result[20], result[21] = result[25], result[26], result[27]
-
+        try:
+            if result[19] == 'нет данных':
+                result[19], result[20], result[21] = result[22], result[23], result[24]
+                if result[22] == 'нет данных':
+                    result[19], result[20], result[21] = result[25], result[26], result[27]
+        except:
+            pass
         keys = ('Адрес', 'Примечание', 'Принадлежность объекта', 'Год постройки', 'Степень огнестойкости', 'Размеры здания',
                 'Этажность', 'Количество подъездов(код домофона)', 'Количество квартир', 'Проинструктировано человек',
                 'Памятка в п/я', 'Пристрой', 'Тип отопления', 'Вход на чердак снаружи здания (лестница)',
